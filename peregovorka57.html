@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запись на смену</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .calendar div {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .calendar div.selected {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Запись на смену</h1>
+    <div id="step1" class="step active">
+        <p>Выберите месяц:</p>
+        <select id="month">
+            <option value="1">Январь</option>
+            <option value="2">Февраль</option>
+            <!-- Добавь остальные месяцы -->
+        </select>
+        <button onclick="nextStep(2)">Далее</button>
+    </div>
+    <div id="step2" class="step">
+        <p>Выберите должность:</p>
+        <select id="position">
+            <option value="сборщик заказов">Сборщик заказов</option>
+            <option value="грузчик">Грузчик</option>
+            <option value="контролер отгрузки">Контролер отгрузки</option>
+            <option value="уборщица">Уборщица</option>
+            <option value="ВЭШ">ВЭШ</option>
+        </select>
+        <button onclick="nextStep(3)">Далее</button>
+    </div>
+    <div id="step3" class="step">
+        <p>Выберите смену:</p>
+        <select id="shift">
+            <option value="дневная">Дневная смена</option>
+            <option value="ночная">Ночная смена</option>
+        </select>
+        <button onclick="nextStep(4)">Далее</button>
+    </div>
+    <div id="step4" class="step">
+        <p>Выберите дни:</p>
+        <div class="calendar" id="calendar"></div>
+        <button onclick="submit()">Записаться</button>
+    </div>
+
+    <script>
+        let selectedDays = [];
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+        function nextStep(step) {
+            document.querySelector('.step.active').classList.remove('active');
+            document.getElementById(`step${step}`).classList.add('active');
+            if (step === 4) {
+                generateCalendar();
+            }
+        }
+
+        function generateCalendar() {
+            const month = parseInt(document.getElementById('month').value);
+            const year = new Date().getFullYear();
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.textContent = day;
+                dayElement.addEventListener('click', () => {
+                    dayElement.classList.toggle('selected');
+                    const selectedDay = `${year}-${month}-${day}`;
+                    if (selectedDays.includes(selectedDay)) {
+                        selectedDays = selectedDays.filter(d => d !== selectedDay);
+                    } else {
+                        selectedDays.push(selectedDay);
+                    }
+                });
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function submit() {
+            const position = document.getElementById('position').value;
+            const shift = document.getElementById('shift').value;
+            const data = {
+                position,
+                shift,
+                days: selectedDays
+            };
+            Telegram.WebApp.sendData(JSON.stringify(data));
+        }
+    </script>
+</body>
+</html>
